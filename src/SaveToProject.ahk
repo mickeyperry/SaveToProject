@@ -12,7 +12,7 @@ SetTitleMatchMode, 2
 #Include %A_ScriptDir%\savedlg_core.ahk
 
 global APP := "Save To Project"
-global VER := "1.1.0"
+global VER := "1.1.1"
 global cfgDir  := A_AppData . "\SaveToProject"
 global cfgFile := cfgDir . "\settings.ini"
 global lnkFile := A_Startup . "\Save To Project.lnk"

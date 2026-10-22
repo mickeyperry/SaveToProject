@@ -21,6 +21,9 @@
 ;     file system from the visible start of the path; results are cached.
 ;   - Maya must be set to Preferences > Files/Projects > File Dialog: OS native
 ;     (its default dialog is Maya's own and cannot be steered).
+;   - A dialog counts as a save dialog when its title starts with Save /
+;     Export / Output / Render, or its OK button says "Save" (Firefox titles
+;     its dialog "Enter name of file to save to...").
 ;   - Open / Import dialogs are never touched.
 ;
 ;  Public knobs (set after SaveDlg_Init):
@@ -34,7 +37,7 @@
 SaveDlg_Init() {
     global SaveDlg_Enabled, SaveDlg_SubFolder, SaveDlg_Apps, SaveDlg_TitleRe
     global SaveDlg_Handled, SaveDlg_Cache, SaveDlg_CacheFile, SaveDlg_TestRoot
-    global SaveDlg_WalkMaxDepth, SaveDlg_LastInfo, SaveDlg_LastTarget
+    global SaveDlg_WalkMaxDepth, SaveDlg_LastInfo, SaveDlg_LastTarget, SaveDlg_SaveBtnRe
     global SaveDlg_AllApps, SaveDlg_Exclude, SaveDlg_RootMarker
     SaveDlg_Enabled      := true
     SaveDlg_AllApps      := true
@@ -43,6 +46,7 @@ SaveDlg_Init() {
     SaveDlg_SubFolder    := ""
     SaveDlg_Apps         := ["AfterFX.exe", "Adobe Media Encoder.exe", "Adobe Premiere Pro.exe", "maya.exe"]
     SaveDlg_TitleRe      := "i)^(Save|Export|Output|Render)"
+    SaveDlg_SaveBtnRe    := "i)^(Save|Export|Speichern|Enregistrer|Guardar|Salva|Opslaan|Zapisz|Salvar)"
     SaveDlg_WalkMaxDepth := 7
     SaveDlg_Handled      := {}       ; hwnd -> true   (dialogs already processed)
     SaveDlg_Cache        := {}       ; truncated title path -> full path
@@ -105,17 +109,28 @@ SaveDlg_Watches(exe) {
     return SaveDlg_AllApps
 }
 
-; A Windows common file dialog: matching title, a filename box and a shell view.
+; A Windows common file dialog: save-like title or OK button, a filename box
+; and a shell view.
 SaveDlg_IsFileDialog(hwnd) {
     global SaveDlg_TitleRe
     WinGetTitle, title, ahk_id %hwnd%
-    if !RegExMatch(title, SaveDlg_TitleRe)
+    if !RegExMatch(title, SaveDlg_TitleRe) && !SaveDlg_HasSaveButton(hwnd)
         return false
     ControlGet, hEdit, Hwnd,, Edit1, ahk_id %hwnd%
     if (!hEdit)
         return false
     WinGet, ctrls, ControlList, ahk_id %hwnd%
     return InStr(ctrls, "DirectUIHWND") || InStr(ctrls, "SHELLDLL_DefView")
+}
+
+; OK button (control id 1) labelled "&Save" / "Save" - Open dialogs say "&Open".
+SaveDlg_HasSaveButton(hwnd) {
+    global SaveDlg_SaveBtnRe
+    hBtn := DllCall("GetDlgItem", "Ptr", hwnd, "Int", 1, "Ptr")
+    if (!hBtn)
+        return false
+    ControlGetText, label,, ahk_id %hBtn%
+    return RegExMatch(StrReplace(label, "&"), SaveDlg_SaveBtnRe)
 }
 
 SaveDlg_Redirect(hwnd, exe) {
