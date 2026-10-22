@@ -40,7 +40,8 @@ The exe is an unsigned AutoHotkey build; some antivirus tools flag those. The fu
   neither, dialogs are left alone. To keep an app out, add it to `settings.ini`:
   `exclude=chrome.exe,Code.exe` under `[settings]`, then restart the app.
 - **Open / Import** dialogs are never touched. Only dialogs whose title starts with
-  Save, Export, Output or Render.
+  Save, Export, Output or Render, or whose main button says **Save** (e.g. Firefox's
+  "Enter name of file to save to...").
 - After Effects shortens the path in its title bar (`D:\Studio Dropbox\Cl ... 26\01_Projects\...`).
   The app recovers the full path with a quick search of the drive from the visible start of the
   path (about 30 ms) and remembers it, so later dialogs are instant.
